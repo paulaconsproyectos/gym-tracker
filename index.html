@@ -648,15 +648,16 @@ const SESSION_SUGGESTIONS={
 
 function updateSessionType(){
   const type=document.getElementById('sessionType').value;
-  if(SESSION_SUGGESTIONS[type]&&currentSession.exercises.length===0){
-    if(confirm(`¿Cargar ejercicios típicos de "${type}"?`)){
-      SESSION_SUGGESTIONS[type].forEach(name=>{
-        const ex=allExercises().find(e=>e.name===name);
-        if(ex)addExerciseToSession(ex,false);
-      });
-      renderExerciseList();
-    }
+  if(!SESSION_SUGGESTIONS[type]) return;
+  if(currentSession.exercises.length>0){
+    if(!confirm(`¿Reemplazar los ejercicios actuales por los de "${type}"?`)) return;
+    currentSession.exercises=[];
   }
+  SESSION_SUGGESTIONS[type].forEach(name=>{
+    const ex=allExercises().find(e=>e.name===name);
+    if(ex)addExerciseToSession(ex,false);
+  });
+  renderExerciseList();
 }
 
 function getLastPerformance(exName){
