@@ -590,9 +590,57 @@ function saveState(){
 }
 function allExercises(){return[...BUILT_IN,...state.customEx];}
 
+// ── PRELOAD BASE DATA ────────────────────────────────────────────────────────
+function seedBaseData(){
+  if(state.sessions.length>0) return;
+  const customToAdd=[
+    {name:'Sisi squat', muscle:'Piernas'},
+    {name:'TRX suspensión', muscle:'Core'},
+    {name:'TRX remo', muscle:'Espalda'},
+    {name:'Pasos laterales con banda', muscle:'Glúteo'},
+    {name:'Subida al cajón', muscle:'Piernas'},
+    {name:'Isquios con placas en suelo', muscle:'Piernas'},
+    {name:'Sentadilla con elevación de talones', muscle:'Piernas'},
+    {name:'Flexiones en banco', muscle:'Pecho'},
+  ];
+  customToAdd.forEach(ex=>{
+    if(!state.customEx.find(e=>e.name===ex.name)) state.customEx.push(ex);
+  });
+  const base=[
+    {name:'Zancadas caminando con mancuernas',   muscle:'Piernas', kg:10,   reps:10},
+    {name:'Extensión de cuádriceps en máquina',  muscle:'Piernas', kg:30,   reps:10},
+    {name:'Sentadilla búlgara (split squat)',     muscle:'Glúteo',  kg:10,   reps:10},
+    {name:'Sisi squat',                          muscle:'Piernas', kg:6,    reps:10},
+    {name:'Subida al cajón',                     muscle:'Piernas', kg:0,    reps:10},
+    {name:'Isquios con placas en suelo',         muscle:'Piernas', kg:0,    reps:10},
+    {name:'Sentadilla con elevación de talones', muscle:'Piernas', kg:5,    reps:10},
+    {name:'Patada de glúteo en polea baja',      muscle:'Glúteo',  kg:22,   reps:10},
+    {name:'Polea — Abducción con tobillera',     muscle:'Glúteo',  kg:18,   reps:10},
+    {name:'Pasos laterales con banda',           muscle:'Glúteo',  kg:0,    reps:15},
+    {name:'Pullover con mancuerna',              muscle:'Espalda', kg:13.6, reps:10},
+    {name:'TRX remo',                            muscle:'Espalda', kg:0,    reps:10},
+    {name:'Extensión en polea alta con cuerda',  muscle:'Tríceps', kg:13.6, reps:10},
+    {name:'Curl con mancuernas alterno de pie',  muscle:'Bíceps',  kg:6,    reps:10},
+    {name:'Polea — Cable crunch en polea alta',  muscle:'Core',    kg:13.6, reps:10},
+    {name:'TRX suspensión',                      muscle:'Core',    kg:0,    reps:10},
+    {name:'Flexiones en el suelo',               muscle:'Pecho',   kg:0,    reps:10},
+    {name:'Flexiones en banco',                  muscle:'Pecho',   kg:0,    reps:10},
+    {name:'Plancha frontal',                     muscle:'Core',    kg:0,    reps:30},
+  ];
+  state.sessions.push({
+    id:uid(), date:'2026-06-01', type:'Full Body', notes:'Sesión base — pesos máximos registrados',
+    exercises: base.map(ex=>({
+      name:ex.name, muscle:ex.muscle,
+      sets:[{reps:ex.reps,kg:ex.kg,done:true},{reps:ex.reps,kg:ex.kg,done:true},{reps:ex.reps,kg:ex.kg,done:true}]
+    }))
+  });
+  saveState();
+}
+
 // ── INIT ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{
   loadState();
+  seedBaseData();
   const today=todayStr();
   document.getElementById('sessionDate').value=today;
   document.getElementById('bodyDate').value=today;
