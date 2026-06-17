@@ -160,10 +160,16 @@ canvas{width:100%!important;max-width:100%}
 
   <div id="exerciseList"></div>
 
-  <button class="btn btn-ghost" style="width:100%;margin-bottom:10px" onclick="openAddExModal()">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:15px;height:15px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Añadir ejercicio
-  </button>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+    <button class="btn btn-ghost" onclick="openAddExModal()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:15px;height:15px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Añadir
+    </button>
+    <button class="btn btn-ghost" onclick="openPasteModal()" style="border-color:rgba(197,241,53,0.3);color:var(--acc)">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:15px;height:15px"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+      Pegar notas
+    </button>
+  </div>
   <button class="btn btn-acc" onclick="saveSession()">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:15px;height:15px"><polyline points="20 6 9 17 4 12"/></svg>
     Guardar sesión
@@ -300,6 +306,42 @@ canvas{width:100%!important;max-width:100%}
         </div>
       </div>
       <button class="btn btn-acc" onclick="addCustomExercise()">Guardar y añadir a la sesión</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PEGAR NOTAS -->
+<div class="modal-overlay" id="pasteModal" onclick="closeModalOutside(event,'pasteModal')">
+  <div class="modal">
+    <div class="modal-title">
+      Pegar notas de entreno
+      <button class="modal-close" onclick="closeModal('pasteModal')">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--t2);margin-bottom:12px;line-height:1.5">
+      Pega tus apuntes tal cual — cualquier formato. La IA detectará los ejercicios, pesos y reps automáticamente.
+    </div>
+    <div style="margin-bottom:12px">
+      <label>Tus notas</label>
+      <textarea id="pasteNotes" rows="7" placeholder="Ej:
+Zancadas con 10
+Búlgara 7,5kg x 3 series
+Tríceps polea 13,6
+Flexiones..." style="resize:vertical;font-size:13px;line-height:1.5"></textarea>
+    </div>
+    <div id="pastePreview" style="display:none;margin-bottom:12px">
+      <div class="sec-label" style="margin-bottom:8px">Vista previa detectada</div>
+      <div id="pastePreviewList"></div>
+    </div>
+    <div id="pasteLoading" style="display:none;text-align:center;padding:20px;color:var(--t3)">
+      <div style="font-size:24px;margin-bottom:8px">🤖</div>
+      <div style="font-size:13px">Interpretando tus notas...</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('pasteModal')">Cancelar</button>
+      <button class="btn btn-acc" style="flex:2" onclick="interpretNotes()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:15px;height:15px"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Interpretar con IA
+      </button>
     </div>
   </div>
 </div>
@@ -1008,6 +1050,122 @@ function renderCharts(){
       {label:'% Agua',data:log.map(e=>e.agua),borderColor:'rgba(255,255,255,.3)',backgroundColor:'transparent',borderWidth:1.5,borderDash:[3,3],pointRadius:2,tension:.3},
     ]},options:{...chartOpts(),plugins:{...chartOpts().plugins,legend:{display:true,labels:{color:'#8a8784',font:{size:10},boxWidth:12,padding:12}}}}});
   }
+}
+
+// ── PASTE NOTES WITH AI ───────────────────────────────────────────────────────
+function openPasteModal(){
+  document.getElementById('pasteNotes').value='';
+  document.getElementById('pastePreview').style.display='none';
+  document.getElementById('pasteLoading').style.display='none';
+  document.getElementById('pasteModal').classList.add('open');
+}
+
+async function interpretNotes(){
+  const notes = document.getElementById('pasteNotes').value.trim();
+  if(!notes){ toast('⚠️ Pega tus notas primero'); return; }
+
+  document.getElementById('pasteLoading').style.display='block';
+  document.getElementById('pastePreview').style.display='none';
+
+  const knownExercises = allExercises().map(e=>e.name).join(', ');
+
+  const prompt = `Eres un asistente de entrenamiento. El usuario ha pegado sus notas de gimnasio. 
+Extrae todos los ejercicios mencionados y devuelve un JSON con este formato exacto, sin texto adicional:
+{
+  "exercises": [
+    {"name": "nombre del ejercicio", "muscle": "grupo muscular", "kg": 10, "reps": 10, "sets": 3}
+  ]
+}
+
+Reglas:
+- Si no se menciona kg, pon 0
+- Si no se menciona reps, pon 10
+- Si no se menciona sets, pon 3
+- Para el muscle usa uno de: Pecho, Espalda, Piernas, Glúteo, Hombros, Bíceps, Tríceps, Core, Polea, Cardio, Máquina, Otro
+- Intenta hacer match con estos ejercicios conocidos si puedes: ${knownExercises.slice(0,500)}
+- Si es un ejercicio custom que no está en la lista, ponlo con el nombre que aparece en las notas
+- Las comas decimales (7,5) son equivalentes a puntos (7.5)
+
+Notas del usuario:
+${notes}`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{role:'user', content: prompt}]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content.map(b=>b.text||'').join('');
+    const clean = text.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+
+    document.getElementById('pasteLoading').style.display='none';
+
+    if(!parsed.exercises || parsed.exercises.length===0){
+      toast('⚠️ No detecté ejercicios, prueba a reformatear');
+      return;
+    }
+
+    // Show preview
+    document.getElementById('pastePreviewList').innerHTML = parsed.exercises.map((ex,i)=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--rs);margin-bottom:5px">
+        <div>
+          <div style="font-size:13px;font-weight:500">${ex.name}</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:2px">${ex.muscle} · ${ex.sets}×${ex.reps} · ${ex.kg}kg</div>
+        </div>
+        <button onclick="removePreviewItem(${i})" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:16px">×</button>
+      </div>
+    `).join('');
+    document.getElementById('pastePreview').style.display='block';
+    document.getElementById('pastePreview').dataset.exercises = JSON.stringify(parsed.exercises);
+
+    // Change button to confirm
+    document.querySelector('#pasteModal .btn-acc').textContent='✅ Añadir a la sesión';
+    document.querySelector('#pasteModal .btn-acc').onclick = confirmPasteNotes;
+
+  } catch(e) {
+    document.getElementById('pasteLoading').style.display='none';
+    toast('❌ Error al interpretar, inténtalo de nuevo');
+    console.error(e);
+  }
+}
+
+function removePreviewItem(i){
+  const data = JSON.parse(document.getElementById('pastePreview').dataset.exercises);
+  data.splice(i,1);
+  document.getElementById('pastePreview').dataset.exercises = JSON.stringify(data);
+  document.getElementById('pastePreviewList').children[i].remove();
+}
+
+function confirmPasteNotes(){
+  const exercises = JSON.parse(document.getElementById('pastePreview').dataset.exercises||'[]');
+  if(exercises.length===0){ toast('⚠️ No hay ejercicios'); return; }
+
+  exercises.forEach(ex=>{
+    // Check if already in session
+    if(currentSession.exercises.find(e=>e.name===ex.name)) return;
+    // Add to custom if not known
+    if(!allExercises().find(e=>e.name===ex.name)){
+      state.customEx.push({name:ex.name, muscle:ex.muscle});
+      saveState();
+    }
+    const sets=[];
+    for(let i=0;i<(ex.sets||3);i++) sets.push({reps:ex.reps||10, kg:ex.kg||0, done:false});
+    currentSession.exercises.push({id:uid(), name:ex.name, muscle:ex.muscle, sets, prog:getProgressionSuggestion(ex.name)});
+  });
+
+  renderExerciseList();
+  closeModal('pasteModal');
+  toast(`✅ ${exercises.length} ejercicios añadidos`);
+
+  // Reset button
+  document.querySelector('#pasteModal .btn-acc').textContent='Interpretar con IA';
+  document.querySelector('#pasteModal .btn-acc').onclick = interpretNotes;
 }
 </script>
 </body>
