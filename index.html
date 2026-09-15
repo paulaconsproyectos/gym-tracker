@@ -655,6 +655,12 @@ Flexiones..." style="resize:vertical;font-size:13px;line-height:1.5"></textarea>
         <input type="number" id="goalSessions" min="1" max="7">
       </div>
     </div>
+    <div class="divider"></div>
+    <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:10px">Nutrición</div>
+    <div class="input-row two">
+      <div><label>Kcal objetivo/día</label><input type="number" id="goalKcal" step="10"></div>
+      <div><label>Proteína objetivo (g/día)</label><input type="number" id="goalProtein" step="5"></div>
+    </div>
     <button class="btn btn-acc" onclick="saveGoal()">Guardar objetivo</button>
   </div>
 </div>
@@ -943,7 +949,7 @@ const BUILT_IN = [
 ];
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let state = {sessions:[], bodyLog:[], customEx:[], habits:[], habitLogs:{}, reminders:[], remindersOn:false, goal:null, progressPhotos:[], weekPlan:null};
+let state = {sessions:[], bodyLog:[], customEx:[], habits:[], habitLogs:{}, reminders:[], remindersOn:false, goal:null, progressPhotos:[], weekPlan:null, nutrition:null};
 let filterMuscle = '';
 let currentSession = {exercises:[]};
 let weightChartInst = null;
@@ -1089,6 +1095,22 @@ function seedGoal(){
   saveState();
 }
 
+function seedNutrition(){
+  if(!state.nutrition){
+    state.nutrition={kcalTarget:1650,proteinTarget:100,mealsPerDay:2,lactoseFree:true};
+  }
+  // Migración: sustituir el check genérico "Comida saludable" por objetivos de proteína por comida
+  const hasNew=state.habits.some(h=>h.name==='Proteína en la comida');
+  if(!hasNew){
+    state.habits=state.habits.filter(h=>h.name!=='Comida saludable');
+    state.habits.push(
+      {id:uid(),name:'Proteína en la comida',category:'Comida',type:'boolean'},
+      {id:uid(),name:'Proteína en la cena',category:'Comida',type:'boolean'}
+    );
+  }
+  saveState();
+}
+
 // ── INIT ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{
   loadState();
@@ -1096,6 +1118,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   seedHabits();
   seedGoal();
   seedWeekPlan();
+  seedNutrition();
   const today=todayStr();
   document.getElementById('sessionDate').value=today;
   document.getElementById('bodyDate').value=today;
@@ -2095,13 +2118,14 @@ function trackStatus(field,dateStr){
   const target=targetOnDate(field,latest.date);
   const targetVal=field==='peso'?g.targetWeight:(g.targetFatMin+g.targetFatMax)/2;
   const direction=targetVal<anchor.value?-1:1; // -1 = objetivo es bajar
-  const deviation=(latestVal-target)*direction;
+  // deviation > 0 significa "por detrás del plan" tanto si el objetivo es bajar como subir
+  const deviation=(latestVal-target)*-direction;
   let status,label;
   if(deviation<=0){status='green';label='Vas por delante del plan';}
   else if(deviation<=0.5){status='green';label='En línea con el plan';}
   else if(deviation<=1){status='yellow';label='Ligero retraso';}
   else{status='red';label='Hay que ajustar';}
-  return{value:latestVal,target,status,label,date:latest.date};
+  return{value:latestVal,target,status,label,date:latest.date,deviation};
 }
 
 function sessionsInRange(startDate,endDate){
@@ -2189,13 +2213,20 @@ function renderTodayCard(){
       ${plan.cardioMin?`<div style="font-size:11px;color:var(--t2);margin-top:4px">🏃 ${plan.cardioMin} min de cardio${plan.note?' · '+plan.note:''}</div>`:''}
     </div>`;
   }
-  html+=`<div>
+  html+=`<div style="padding-bottom:10px;border-bottom:1px solid var(--b1);margin-bottom:10px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
       <div style="font-size:13px;font-weight:600">✅ Hábitos de hoy</div>
       <div class="track-badge ${pendingHabits.length===0?'green':'yellow'}" style="cursor:pointer" onclick="switchTab('Habits')">${state.habits.length-pendingHabits.length}/${state.habits.length}</div>
     </div>
     ${pendingHabits.length>0?`<div style="font-size:11px;color:var(--t3)">Pendiente: ${pendingHabits.slice(0,4).map(h=>h.name).join(', ')}${pendingHabits.length>4?'…':''}</div>`:`<div style="font-size:11px;color:var(--t3)">Todo hecho 🎉</div>`}
   </div>`;
+  if(state.nutrition){
+    const n=state.nutrition;
+    html+=`<div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px">🍽️ Nutrición de hoy</div>
+      <div style="font-size:11px;color:var(--t3)">~${n.kcalTarget}kcal · ~${n.proteinTarget}g proteína · ${n.mealsPerDay===2?'comida + cena':n.mealsPerDay+' comidas'}${n.lactoseFree?' · sin lácteos':''}</div>
+    </div>`;
+  }
   document.getElementById('homeTodayCard').innerHTML=html;
 }
 
@@ -2248,6 +2279,14 @@ function renderHome(){
   } else {
     trackHtml+=`<div class="track-row"><div class="track-lbl">% Grasa — añade tu primera medición de grasa para trazar el objetivo (${g.targetFatMin}-${g.targetFatMax}%)</div></div>`;
   }
+  if(weightStatus&&state.nutrition){
+    let nudge=null;
+    if(weightStatus.deviation>1){nudge=`Vas más lenta de lo previsto → prueba a bajar ~100-150 kcal/día esta semana (manteniendo la proteína) y revisa que se cumplan los checks de proteína en comida/cena.`;}
+    else if(weightStatus.deviation<-1){nudge=`Estás perdiendo más rápido de lo planeado → sube ~100-150 kcal/día (proteína o carbohidrato) para proteger el músculo mientras entrenas fuerte.`;}
+    if(nudge){
+      trackHtml+=`<div class="track-row"><div class="track-lbl">🍽️ ${nudge}</div></div>`;
+    }
+  }
   homeTrackCard.innerHTML=trackHtml;
 
   // Weekly history
@@ -2281,6 +2320,9 @@ function openGoalModal(){
   document.getElementById('goalFatMin').value=g.targetFatMin??'';
   document.getElementById('goalFatMax').value=g.targetFatMax??'';
   document.getElementById('goalSessions').value=g.sessionsPerWeekTarget??4;
+  const n=state.nutrition||{};
+  document.getElementById('goalKcal').value=n.kcalTarget??'';
+  document.getElementById('goalProtein').value=n.proteinTarget??'';
   document.getElementById('goalModal').classList.add('open');
 }
 function saveGoal(){
@@ -2293,6 +2335,12 @@ function saveGoal(){
   const startDate=state.goal?state.goal.startDate:todayStr();
   const startWeight=state.goal?state.goal.startWeight:(latestBodyValue('peso',startDate)?.value||targetWeight);
   state.goal={startDate,deadline,startWeight,targetWeight,targetFatMin:targetFatMin||18,targetFatMax:targetFatMax||20,sessionsPerWeekTarget};
+  state.nutrition={
+    kcalTarget:parseInt(document.getElementById('goalKcal').value)||1650,
+    proteinTarget:parseInt(document.getElementById('goalProtein').value)||100,
+    mealsPerDay:2,
+    lactoseFree:true
+  };
   saveState();
   closeModal('goalModal');
   renderHome();
