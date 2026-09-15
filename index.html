@@ -19,9 +19,9 @@ html{height:100%;background:var(--bg)}
 body{min-height:100%;background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:14px;max-width:430px;margin:0 auto;padding-bottom:90px}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--s3)}
 .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(8,8,8,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--b1);padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px));display:flex;z-index:50}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:4px 0;border:none;background:none;color:var(--t3);font-family:var(--sans);font-size:10px;letter-spacing:.05em;text-transform:uppercase;transition:color .2s}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0;border:none;background:none;color:var(--t3);font-family:var(--sans);font-size:9px;letter-spacing:.03em;text-transform:uppercase;transition:color .2s;min-width:0}
 .nav-btn.active{color:var(--acc)}
-.nav-btn svg{width:22px;height:22px;stroke-width:1.5}
+.nav-btn svg{width:19px;height:19px;stroke-width:1.5}
 .hdr{padding:calc(env(safe-area-inset-top,16px) + 16px) 18px 14px;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--b1)}
 .hdr-title{font-size:22px;font-weight:300;letter-spacing:-.02em;line-height:1}
 .hdr-title span{color:var(--acc)}
@@ -142,6 +142,41 @@ canvas{width:100%!important;max-width:100%}
 .switch-slider::before{content:'';position:absolute;width:18px;height:18px;left:2px;top:2px;background:var(--t2);border-radius:50%;transition:.2s}
 .switch input:checked+.switch-slider{background:var(--acc-d);border-color:var(--acc-b)}
 .switch input:checked+.switch-slider::before{transform:translateX(18px);background:var(--acc)}
+.countdown-card{background:linear-gradient(135deg,var(--acc-d),transparent);border:1px solid var(--acc-b);border-radius:var(--r);padding:16px;margin-bottom:14px;text-align:center}
+.countdown-days{font-family:var(--mono);font-size:38px;font-weight:500;color:var(--acc);line-height:1}
+.countdown-lbl{font-size:11px;color:var(--t2);margin-top:4px}
+.countdown-week{font-family:var(--mono);font-size:10px;color:var(--t3);margin-top:8px;letter-spacing:.06em}
+.semaphore-card{border-radius:var(--r);padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;border:1px solid}
+.semaphore-card.green{background:var(--acc-d);border-color:var(--acc-b)}
+.semaphore-card.yellow{background:rgba(240,190,60,0.10);border-color:rgba(240,190,60,0.3)}
+.semaphore-card.red{background:var(--red-d);border-color:rgba(241,96,96,.3)}
+.semaphore-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.semaphore-dot.green{background:var(--acc)}
+.semaphore-dot.yellow{background:#f0be3c}
+.semaphore-dot.red{background:var(--red)}
+.semaphore-text{font-size:13px;font-weight:500}
+.semaphore-sub{font-size:11px;color:var(--t3);margin-top:2px}
+.track-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--b1)}
+.track-row:last-child{border-bottom:none}
+.track-lbl{font-size:12px;color:var(--t2)}
+.track-badge{font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:20px;font-weight:500}
+.track-badge.green{background:var(--acc-d);color:var(--acc)}
+.track-badge.yellow{background:rgba(240,190,60,0.12);color:#f0be3c}
+.track-badge.red{background:var(--red-d);color:var(--red)}
+.quick-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.quick-action{background:var(--s1);border:1px solid var(--b1);border-radius:var(--rs);padding:12px 8px;text-align:center;cursor:pointer}
+.quick-action svg{width:18px;height:18px;color:var(--acc);margin-bottom:4px}
+.quick-action-lbl{font-size:10px;color:var(--t2)}
+.week-item{padding:11px 0;border-bottom:1px solid var(--b1)}
+.week-item:last-child{border-bottom:none}
+.week-item-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.week-item-title{font-size:12px;font-weight:500}
+.week-item-detail{font-size:11px;color:var(--t3);line-height:1.5}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.photo-thumb{position:relative;aspect-ratio:3/4;border-radius:var(--rs);overflow:hidden;border:1px solid var(--b1);cursor:pointer}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-thumb-date{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:var(--t1);font-size:9px;font-family:var(--mono);padding:3px 4px;text-align:center}
+.photo-add-btn{aspect-ratio:3/4;border-radius:var(--rs);border:1px dashed var(--b2);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--t3);cursor:pointer;font-size:10px;gap:4px}
 </style>
 </head>
 <body>
@@ -154,8 +189,60 @@ canvas{width:100%!important;max-width:100%}
   <div class="hdr-date" id="hdrDate"></div>
 </div>
 
+<!-- SCREEN: INICIO -->
+<div class="screen active" id="scHome">
+  <div class="countdown-card">
+    <div class="countdown-days" id="homeCountdownDays">—</div>
+    <div class="countdown-lbl">días para el <span id="homeDeadline">2 dic</span></div>
+    <div class="countdown-week" id="homeWeekLbl"></div>
+  </div>
+
+  <div class="semaphore-card" id="homeSemaphore">
+    <div class="semaphore-dot" id="homeSemDot"></div>
+    <div>
+      <div class="semaphore-text" id="homeSemText">Cargando...</div>
+      <div class="semaphore-sub" id="homeSemSub"></div>
+    </div>
+  </div>
+
+  <div class="quick-actions">
+    <div class="quick-action" onclick="switchTab('Train')">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="margin:0 auto"><path d="M6 5v14M18 5v14M3 12h3M18 12h3M6 8h12M6 16h12"/></svg>
+      <div class="quick-action-lbl">Entreno</div>
+    </div>
+    <div class="quick-action" onclick="switchTab('Habits')">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="margin:0 auto"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <div class="quick-action-lbl">Hábitos</div>
+    </div>
+    <div class="quick-action" onclick="switchTab('Body')">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="margin:0 auto"><path d="M12 2a3 3 0 0 1 3 3c0 1.5-1 2.8-2.5 3.2V10h4a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-1v5a2 2 0 0 1-2 2h-3a2 2 0 0 1-2-2v-5H7a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2h4V8.2C9 7.8 8 6.5 8 5a3 3 0 0 1 3-3z"/></svg>
+      <div class="quick-action-lbl">Cuerpo</div>
+    </div>
+  </div>
+
+  <div class="sec-label">Hacia el objetivo</div>
+  <div class="card" style="margin-bottom:14px" id="homeTrackCard"></div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div class="sec-label" style="margin-bottom:0">Racha</div>
+  </div>
+  <div class="stat-grid" style="grid-template-columns:1fr 1fr">
+    <div class="stat-box accent"><div class="stat-val accent" id="homeStreak">0</div><div class="stat-lbl">Días seguidos activa</div></div>
+    <div class="stat-box"><div class="stat-val" id="homeSessionsWeek">0</div><div class="stat-lbl">Sesiones esta semana</div></div>
+  </div>
+
+  <button class="btn btn-ghost" style="width:100%;margin-bottom:14px" onclick="openGoalModal()">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:15px;height:15px"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+    Mi objetivo
+  </button>
+
+  <div class="divider"></div>
+  <div class="sec-label">Historial semanal</div>
+  <div class="card"><div id="homeWeekHistory"></div></div>
+</div>
+
 <!-- SCREEN: ENTRENO -->
-<div class="screen active" id="scTrain">
+<div class="screen" id="scTrain">
   <div class="sec-label">Sesión de hoy</div>
   <div class="card" style="margin-bottom:12px">
     <div class="input-row two">
@@ -262,6 +349,13 @@ canvas{width:100%!important;max-width:100%}
   <div class="card"><div class="chart-wrap"><canvas id="compChart"></canvas></div></div>
   <div class="sec-label">Historial</div>
   <div class="card"><div id="bodyHistory"></div></div>
+
+  <div class="sec-label">Fotos de progreso</div>
+  <div class="card" style="margin-bottom:14px">
+    <div style="font-size:11px;color:var(--t3);margin-bottom:2px">Guardadas solo en este dispositivo</div>
+    <div class="photo-grid" id="photoGrid"></div>
+    <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="addProgressPhoto(this.files[0])">
+  </div>
 </div>
 
 <!-- SCREEN: HÁBITOS -->
@@ -315,7 +409,11 @@ canvas{width:100%!important;max-width:100%}
 
 <!-- NAV -->
 <nav class="nav">
-  <button class="nav-btn active" onclick="switchTab('Train')" id="navTrain">
+  <button class="nav-btn active" onclick="switchTab('Home')" id="navHome">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
+    Inicio
+  </button>
+  <button class="nav-btn" onclick="switchTab('Train')" id="navTrain">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 5v14M18 5v14M3 12h3M18 12h3M6 8h12M6 16h12"/></svg>
     Entreno
   </button>
@@ -474,6 +572,43 @@ Flexiones..." style="resize:vertical;font-size:13px;line-height:1.5"></textarea>
       </div>
       <button class="btn btn-acc" onclick="addCustomHabit()">Guardar hábito</button>
     </div>
+  </div>
+</div>
+
+<!-- MODAL MI OBJETIVO -->
+<div class="modal-overlay" id="goalModal" onclick="closeModalOutside(event,'goalModal')">
+  <div class="modal">
+    <div class="modal-title">
+      Mi objetivo
+      <button class="modal-close" onclick="closeModal('goalModal')">×</button>
+    </div>
+    <div class="input-row two">
+      <div><label>Peso objetivo (kg)</label><input type="number" id="goalWeight" step="0.1"></div>
+      <div><label>Fecha límite</label><input type="date" id="goalDeadline"></div>
+    </div>
+    <div class="input-row two">
+      <div><label>% Grasa objetivo mín.</label><input type="number" id="goalFatMin" step="0.5"></div>
+      <div><label>% Grasa objetivo máx.</label><input type="number" id="goalFatMax" step="0.5"></div>
+    </div>
+    <div class="input-row">
+      <div>
+        <label>Sesiones de entreno / semana (objetivo)</label>
+        <input type="number" id="goalSessions" min="1" max="7">
+      </div>
+    </div>
+    <button class="btn btn-acc" onclick="saveGoal()">Guardar objetivo</button>
+  </div>
+</div>
+
+<!-- MODAL VER FOTO -->
+<div class="modal-overlay" id="photoViewModal" onclick="closeModalOutside(event,'photoViewModal')">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="photoViewDate"></span>
+      <button class="modal-close" onclick="closeModal('photoViewModal')">×</button>
+    </div>
+    <img id="photoViewImg" style="width:100%;border-radius:var(--rs);margin-bottom:14px">
+    <button class="btn btn-danger" style="width:100%" id="photoViewDeleteBtn">Eliminar foto</button>
   </div>
 </div>
 
@@ -726,7 +861,7 @@ const BUILT_IN = [
   // CARDIO
   {name:'Cinta de correr — carrera continua', muscle:'Cardio'},
   {name:'Cinta de correr — HIIT intervalos', muscle:'Cardio'},
-  {name:'Cinta de correr — caminata inclinada', muscle:'Cardio'},
+  {name:'Cinta inclinada 15% (caminata)', muscle:'Cardio'},
   {name:'Cinta de correr — sprint 30s', muscle:'Cardio'},
   {name:'Bicicleta estática — steady state', muscle:'Cardio'},
   {name:'Bicicleta estática — HIIT', muscle:'Cardio'},
@@ -749,7 +884,7 @@ const BUILT_IN = [
 ];
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let state = {sessions:[], bodyLog:[], customEx:[], habits:[], habitLogs:{}, reminders:[], remindersOn:false};
+let state = {sessions:[], bodyLog:[], customEx:[], habits:[], habitLogs:{}, reminders:[], remindersOn:false, goal:null, progressPhotos:[]};
 let filterMuscle = '';
 let currentSession = {exercises:[]};
 let weightChartInst = null;
@@ -828,11 +963,30 @@ function seedHabits(){
   saveState();
 }
 
+function seedGoal(){
+  if(state.goal) return;
+  const today=todayStr();
+  if(state.bodyLog.length===0){
+    state.bodyLog.push({id:uid(),date:today,peso:53,grasa:null,musculo:null,agua:null,oseo:null,nota:'Punto de partida'});
+  }
+  state.goal={
+    startDate:today,
+    deadline:'2026-12-02',
+    startWeight:53,
+    targetWeight:48,
+    targetFatMin:18,
+    targetFatMax:20,
+    sessionsPerWeekTarget:4
+  };
+  saveState();
+}
+
 // ── INIT ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{
   loadState();
   seedBaseData();
   seedHabits();
+  seedGoal();
   const today=todayStr();
   document.getElementById('sessionDate').value=today;
   document.getElementById('bodyDate').value=today;
@@ -841,10 +995,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderExerciseList();
   renderBodyStats();
   renderBodyHistory();
-  renderCharts();
   populateProgSelector();
   renderHabits();
+  renderHome();
+  renderPhotoGrid();
   initReminders();
+  renderCharts();
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(()=>{});
   }
@@ -873,12 +1029,13 @@ function delta(curr,prev,unit='',invertColor=false){
   return{text:`${sign}${d}${unit} vs anterior`,cls};
 }
 function switchTab(name){
-  ['Train','Progress','Body','Habits'].forEach(n=>{
+  ['Home','Train','Progress','Body','Habits'].forEach(n=>{
     document.getElementById('sc'+n).classList.toggle('active',n===name);
     document.getElementById('nav'+n).classList.toggle('active',n===name);
   });
+  if(name==='Home'){renderHome();}
   if(name==='Progress'){renderSessionHistory();renderProgression();}
-  if(name==='Body'){renderBodyStats();renderBodyHistory();renderCharts();}
+  if(name==='Body'){renderBodyStats();renderBodyHistory();renderCharts();renderPhotoGrid();}
   if(name==='Habits'){renderHabits();}
 }
 
@@ -891,6 +1048,7 @@ const SESSION_SUGGESTIONS={
   'Hombros':['Press militar con barra de pie','Elevaciones laterales con mancuernas','Elevaciones frontales con mancuernas','Face pull en polea (deltoides posterior)','Pájaros con mancuernas (posterior)'],
   'Full Body':['Sentadilla con barra (back squat)','Press banca plano con barra','Peso muerto convencional','Jalón al pecho agarre ancho','Press militar con barra de pie'],
   'Core':['Plancha frontal','Crunch en polea alta','Elevación de piernas colgada en barra','Russian twist con peso','Rueda abdominal (ab wheel)'],
+  'HIIT / Cardio':['Cinta inclinada 15% (caminata)','Cinta de correr — HIIT intervalos','Bicicleta estática — HIIT','Saltar a la comba'],
 };
 
 function updateSessionType(){
@@ -1188,24 +1346,50 @@ function chartOpts(yMin){
   return{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(20,20,20,.95)',borderColor:'rgba(255,255,255,.1)',borderWidth:1,titleColor:'#f2f0ed',bodyColor:'#8a8784',padding:10,cornerRadius:8}},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a4846',font:{size:9},maxTicksLimit:6}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a4846',font:{size:9}},...(yMin!==undefined?{min:yMin}:{})}}};
 }
 
+function buildGoalDates(logDates){
+  const g=state.goal;
+  const dates=[...logDates];
+  if(g){
+    let d=dates.length?dates[dates.length-1]:g.startDate;
+    d=addDays(d,7);
+    while(d<=g.deadline){dates.push(d);d=addDays(d,7);}
+    if(dates[dates.length-1]!==g.deadline)dates.push(g.deadline);
+  }
+  return dates;
+}
 function renderCharts(){
+  if(typeof Chart==='undefined')return;
   const log=state.bodyLog;
-  const labels=log.map(e=>fmtDate(e.date).slice(0,6));
+  const logDates=log.map(e=>e.date);
+  const allDates=buildGoalDates(logDates);
+  const labels=allDates.map(d=>fmtDate(d).slice(0,6));
+  const weightsByDate=Object.fromEntries(log.map(e=>[e.date,e.peso]));
+  const grasaByDate=Object.fromEntries(log.filter(e=>e.grasa!=null).map(e=>[e.date,e.grasa]));
+
   if(weightChartInst)weightChartInst.destroy();
   const wCtx=document.getElementById('weightChart');
   if(wCtx&&log.length>0){
-    const weights=log.map(e=>e.peso);
-    const minW=Math.min(...weights)-2;
-    weightChartInst=new Chart(wCtx,{type:'line',data:{labels,datasets:[{data:weights,borderColor:'#c5f135',backgroundColor:'rgba(197,241,53,0.07)',borderWidth:2,pointBackgroundColor:'#c5f135',pointRadius:3,tension:.3,fill:true}]},options:chartOpts(minW>0?minW:0)});
+    const weights=allDates.map(d=>weightsByDate[d]??null);
+    const knownWeights=log.map(e=>e.peso);
+    const minW=Math.min(...knownWeights)-2;
+    const datasets=[{label:'Peso',data:weights,borderColor:'#c5f135',backgroundColor:'rgba(197,241,53,0.07)',borderWidth:2,pointBackgroundColor:'#c5f135',pointRadius:3,tension:.3,fill:true,spanGaps:true}];
+    if(state.goal&&goalAnchor('peso')){
+      datasets.push({label:'Objetivo',data:allDates.map(d=>targetOnDate('peso',d)),borderColor:'rgba(255,255,255,.35)',backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:0});
+    }
+    weightChartInst=new Chart(wCtx,{type:'line',data:{labels,datasets},options:{...chartOpts(minW>0?minW:0),plugins:{...chartOpts().plugins,legend:{display:!!state.goal,labels:{color:'#8a8784',font:{size:10},boxWidth:12,padding:12}}}}});
   }
   if(compChartInst)compChartInst.destroy();
   const cCtx=document.getElementById('compChart');
   if(cCtx&&log.length>0){
-    compChartInst=new Chart(cCtx,{type:'line',data:{labels,datasets:[
-      {label:'% Grasa',data:log.map(e=>e.grasa),borderColor:'#f16060',backgroundColor:'transparent',borderWidth:2,pointBackgroundColor:'#f16060',pointRadius:3,tension:.3},
-      {label:'% Músculo',data:log.map(e=>e.musculo),borderColor:'#6ab4f5',backgroundColor:'transparent',borderWidth:2,pointBackgroundColor:'#6ab4f5',pointRadius:3,tension:.3},
-      {label:'% Agua',data:log.map(e=>e.agua),borderColor:'rgba(255,255,255,.3)',backgroundColor:'transparent',borderWidth:1.5,borderDash:[3,3],pointRadius:2,tension:.3},
-    ]},options:{...chartOpts(),plugins:{...chartOpts().plugins,legend:{display:true,labels:{color:'#8a8784',font:{size:10},boxWidth:12,padding:12}}}}});
+    const datasets=[
+      {label:'% Grasa',data:allDates.map(d=>grasaByDate[d]??null),borderColor:'#f16060',backgroundColor:'transparent',borderWidth:2,pointBackgroundColor:'#f16060',pointRadius:3,tension:.3,spanGaps:true},
+      {label:'% Músculo',data:allDates.map(d=>{const e=log.find(x=>x.date===d);return e&&e.musculo!=null?e.musculo:null;}),borderColor:'#6ab4f5',backgroundColor:'transparent',borderWidth:2,pointBackgroundColor:'#6ab4f5',pointRadius:3,tension:.3,spanGaps:true},
+      {label:'% Agua',data:allDates.map(d=>{const e=log.find(x=>x.date===d);return e&&e.agua!=null?e.agua:null;}),borderColor:'rgba(255,255,255,.3)',backgroundColor:'transparent',borderWidth:1.5,borderDash:[3,3],pointRadius:2,tension:.3,spanGaps:true},
+    ];
+    if(state.goal&&goalAnchor('grasa')){
+      datasets.push({label:'Objetivo grasa',data:allDates.map(d=>targetOnDate('grasa',d)),borderColor:'rgba(241,96,96,.35)',backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:0});
+    }
+    compChartInst=new Chart(cCtx,{type:'line',data:{labels,datasets},options:{...chartOpts(),plugins:{...chartOpts().plugins,legend:{display:true,labels:{color:'#8a8784',font:{size:10},boxWidth:12,padding:12}}}}});
   }
 }
 
@@ -1551,6 +1735,263 @@ function checkReminders(){
       }
     }
   });
+}
+
+// ── OBJETIVO / DASHBOARD ──────────────────────────────────────────────────────
+function daysBetween(d1,d2){return Math.round((new Date(d2+'T00:00:00')-new Date(d1+'T00:00:00'))/86400000);}
+function addDays(dateStr,n){const d=new Date(dateStr+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+
+function goalAnchor(field){
+  const g=state.goal;if(!g)return null;
+  const entries=state.bodyLog.filter(e=>e[field]!=null && e.date>=g.startDate).sort((a,b)=>a.date.localeCompare(b.date));
+  if(entries.length===0)return null;
+  return{date:entries[0].date,value:entries[0][field]};
+}
+function targetOnDate(field,dateStr){
+  const g=state.goal;if(!g)return null;
+  const anchor=goalAnchor(field);if(!anchor)return null;
+  const targetVal=field==='peso'?g.targetWeight:(g.targetFatMin+g.targetFatMax)/2;
+  const totalDays=daysBetween(anchor.date,g.deadline);
+  if(totalDays<=0)return targetVal;
+  const elapsed=Math.min(Math.max(daysBetween(anchor.date,dateStr),0),totalDays);
+  return anchor.value+(targetVal-anchor.value)*(elapsed/totalDays);
+}
+function latestBodyValue(field,onOrBefore){
+  const entries=state.bodyLog.filter(e=>e[field]!=null&&(!onOrBefore||e.date<=onOrBefore)).sort((a,b)=>a.date.localeCompare(b.date));
+  return entries.length?entries[entries.length-1]:null;
+}
+function trackStatus(field,dateStr){
+  const g=state.goal;if(!g)return null;
+  const anchor=goalAnchor(field);if(!anchor)return null;
+  const latest=latestBodyValue(field,dateStr);if(!latest)return null;
+  const latestVal=latest[field];
+  const target=targetOnDate(field,latest.date);
+  const targetVal=field==='peso'?g.targetWeight:(g.targetFatMin+g.targetFatMax)/2;
+  const direction=targetVal<anchor.value?-1:1; // -1 = objetivo es bajar
+  const deviation=(latestVal-target)*direction;
+  let status,label;
+  if(deviation<=0){status='green';label='Vas por delante del plan';}
+  else if(deviation<=0.5){status='green';label='En línea con el plan';}
+  else if(deviation<=1){status='yellow';label='Ligero retraso';}
+  else{status='red';label='Hay que ajustar';}
+  return{value:latestVal,target,status,label,date:latest.date};
+}
+
+function sessionsInRange(startDate,endDate){
+  return state.sessions.filter(s=>s.date>=startDate&&s.date<=endDate).length;
+}
+function habitsPctForDate(date){
+  const log=state.habitLogs[date]||{};
+  const total=state.habits.length;
+  if(total===0)return null;
+  const met=state.habits.filter(h=>isHabitMet(h,log[h.id])).length;
+  return Math.round(met/total*100);
+}
+function habitsAvgPct(startDate,endDate){
+  const days=[];let d=startDate;
+  while(d<=endDate){days.push(d);d=addDays(d,1);}
+  const pcts=days.map(habitsPctForDate).filter(p=>p!=null);
+  if(pcts.length===0)return null;
+  return Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length);
+}
+function globalStreak(){
+  let streak=0;let d=todayStr();
+  for(let i=0;i<365;i++){
+    const hasSession=state.sessions.some(s=>s.date===d);
+    const pct=habitsPctForDate(d);
+    const active=hasSession||(pct!=null&&pct>=50);
+    if(!active)break;
+    streak++;
+    d=addDays(d,-1);
+  }
+  return streak;
+}
+function weekBounds(dateStr){
+  const d=new Date(dateStr+'T00:00:00');
+  const dow=(d.getDay()+6)%7; // Mon=0
+  const start=addDays(dateStr,-dow);
+  const end=addDays(start,6);
+  return{start,end};
+}
+function weekStats(weekStart,weekEnd){
+  const g=state.goal;
+  const today=todayStr();
+  const effEnd=weekEnd>today?today:weekEnd;
+  const sessions=sessionsInRange(weekStart,effEnd);
+  const sessionsTarget=g?g.sessionsPerWeekTarget:4;
+  const habitsPct=weekStart>effEnd?0:(habitsAvgPct(weekStart,effEnd)??0);
+  const weightEntry=latestBodyValue('peso',effEnd);
+  let weightVerdict=null;
+  if(g&&weightEntry){
+    const target=targetOnDate('peso',weightEntry.date);
+    weightVerdict={actual:weightEntry.peso,target:Math.round(target*10)/10};
+  }
+  const sessionsScore=Math.min(sessions/sessionsTarget,1);
+  const habitsScore=habitsPct/100;
+  const scores=[sessionsScore,habitsScore];
+  if(weightVerdict){
+    const dev=Math.abs(weightVerdict.actual-weightVerdict.target);
+    scores.push(dev<=0.4?1:dev<=0.9?0.6:0.2);
+  }
+  const overall=scores.reduce((a,b)=>a+b,0)/scores.length;
+  const verdict=overall>=0.75?'green':overall>=0.5?'yellow':'red';
+  return{sessions,sessionsTarget,habitsPct,weightVerdict,verdict};
+}
+
+function renderHome(){
+  const g=state.goal;
+  const today=todayStr();
+  const homeTrackCard=document.getElementById('homeTrackCard');
+  if(!g){
+    document.getElementById('homeCountdownDays').textContent='—';
+    document.getElementById('homeWeekLbl').textContent='Configura tu objetivo para empezar la cuenta atrás';
+    document.getElementById('homeSemText').textContent='Sin objetivo configurado';
+    document.getElementById('homeSemSub').textContent='Pulsa "Mi objetivo" para definirlo';
+    document.getElementById('homeSemDot').className='semaphore-dot';
+    document.getElementById('homeSemaphore').className='semaphore-card';
+    homeTrackCard.innerHTML='';
+    document.getElementById('homeStreak').textContent=globalStreak();
+    document.getElementById('homeSessionsWeek').textContent='0';
+    document.getElementById('homeWeekHistory').innerHTML='';
+    return;
+  }
+  document.getElementById('homeDeadline').textContent=fmtDate(g.deadline);
+  const daysLeft=Math.max(0,daysBetween(today,g.deadline));
+  document.getElementById('homeCountdownDays').textContent=daysLeft;
+  const totalWeeks=Math.max(1,Math.ceil(daysBetween(g.startDate,g.deadline)/7));
+  const weekNum=Math.min(totalWeeks,Math.floor(daysBetween(g.startDate,today)/7)+1);
+  document.getElementById('homeWeekLbl').textContent=`Semana ${weekNum} de ${totalWeeks}`;
+
+  const {start:wStart,end:wEnd}=weekBounds(today);
+  const ws=weekStats(wStart,wEnd);
+  const semEl=document.getElementById('homeSemaphore');
+  semEl.className='semaphore-card '+ws.verdict;
+  document.getElementById('homeSemDot').className='semaphore-dot '+ws.verdict;
+  const semMsg={green:'Vas muy bien esta semana',yellow:'Vas bien, hay margen de mejora',red:'Esta semana necesita un ajuste'};
+  document.getElementById('homeSemText').textContent=semMsg[ws.verdict];
+  document.getElementById('homeSemSub').textContent=`${ws.sessions}/${ws.sessionsTarget} sesiones · ${ws.habitsPct}% hábitos`+(ws.weightVerdict?` · ${ws.weightVerdict.actual}kg (obj. ${ws.weightVerdict.target}kg)`:'');
+  document.getElementById('homeSessionsWeek').textContent=ws.sessions;
+  document.getElementById('homeStreak').textContent=globalStreak();
+
+  const weightStatus=trackStatus('peso',today);
+  const fatStatus=trackStatus('grasa',today);
+  let trackHtml='';
+  if(weightStatus){
+    trackHtml+=`<div class="track-row"><div><div class="track-lbl">Peso</div><div style="font-size:15px;font-weight:500;margin-top:2px">${weightStatus.value}kg <span style="color:var(--t3);font-weight:400;font-size:11px">/ obj. ${Math.round(weightStatus.target*10)/10}kg hoy</span></div></div><div class="track-badge ${weightStatus.status}">${weightStatus.label}</div></div>`;
+  } else {
+    trackHtml+=`<div class="track-row"><div class="track-lbl">Peso — añade una medición en Cuerpo para activar el seguimiento</div></div>`;
+  }
+  if(fatStatus){
+    trackHtml+=`<div class="track-row"><div><div class="track-lbl">% Grasa</div><div style="font-size:15px;font-weight:500;margin-top:2px">${fatStatus.value}% <span style="color:var(--t3);font-weight:400;font-size:11px">/ obj. ${Math.round(fatStatus.target*10)/10}% hoy</span></div></div><div class="track-badge ${fatStatus.status}">${fatStatus.label}</div></div>`;
+  } else {
+    trackHtml+=`<div class="track-row"><div class="track-lbl">% Grasa — añade tu primera medición de grasa para trazar el objetivo (${g.targetFatMin}-${g.targetFatMax}%)</div></div>`;
+  }
+  homeTrackCard.innerHTML=trackHtml;
+
+  // Weekly history
+  const weeks=[];
+  let ws2=weekBounds(g.startDate).start;
+  while(ws2<=today){
+    const we=addDays(ws2,6);
+    weeks.push({start:ws2,end:we>today?today:we});
+    ws2=addDays(ws2,7);
+  }
+  const historyEl=document.getElementById('homeWeekHistory');
+  if(weeks.length===0){
+    historyEl.innerHTML=`<div style="text-align:center;padding:20px;color:var(--t3);font-size:12px">Aún no hay semanas completas</div>`;
+  } else {
+    historyEl.innerHTML=weeks.slice().reverse().map((w,i)=>{
+      const stats=weekStats(w.start,w.end);
+      const emoji={green:'🟢',yellow:'🟡',red:'🔴'}[stats.verdict];
+      const weightTxt=stats.weightVerdict?` · ${stats.weightVerdict.actual}kg (obj. ${stats.weightVerdict.target}kg)`:'';
+      return `<div class="week-item">
+        <div class="week-item-hdr"><div class="week-item-title">${emoji} ${fmtDate(w.start)} — ${fmtDate(w.end)}</div></div>
+        <div class="week-item-detail">${stats.sessions}/${stats.sessionsTarget} sesiones · ${stats.habitsPct}% hábitos${weightTxt}</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function openGoalModal(){
+  const g=state.goal||{};
+  document.getElementById('goalWeight').value=g.targetWeight??'';
+  document.getElementById('goalDeadline').value=g.deadline||'2026-12-02';
+  document.getElementById('goalFatMin').value=g.targetFatMin??'';
+  document.getElementById('goalFatMax').value=g.targetFatMax??'';
+  document.getElementById('goalSessions').value=g.sessionsPerWeekTarget??4;
+  document.getElementById('goalModal').classList.add('open');
+}
+function saveGoal(){
+  const targetWeight=parseFloat(document.getElementById('goalWeight').value);
+  const deadline=document.getElementById('goalDeadline').value;
+  const targetFatMin=parseFloat(document.getElementById('goalFatMin').value)||null;
+  const targetFatMax=parseFloat(document.getElementById('goalFatMax').value)||null;
+  const sessionsPerWeekTarget=parseInt(document.getElementById('goalSessions').value)||4;
+  if(!targetWeight||!deadline){toast('⚠️ Peso objetivo y fecha son obligatorios');return;}
+  const startDate=state.goal?state.goal.startDate:todayStr();
+  const startWeight=state.goal?state.goal.startWeight:(latestBodyValue('peso',startDate)?.value||targetWeight);
+  state.goal={startDate,deadline,startWeight,targetWeight,targetFatMin:targetFatMin||18,targetFatMax:targetFatMax||20,sessionsPerWeekTarget};
+  saveState();
+  closeModal('goalModal');
+  renderHome();
+  renderCharts();
+  toast('✅ Objetivo guardado');
+}
+
+// ── FOTOS DE PROGRESO ─────────────────────────────────────────────────────────
+function addProgressPhoto(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const maxDim=700;
+      let w=img.width,h=img.height;
+      if(w>h&&w>maxDim){h=h*maxDim/w;w=maxDim;}
+      else if(h>=w&&h>maxDim){w=w*maxDim/h;h=maxDim;}
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      const dataUrl=canvas.toDataURL('image/jpeg',0.7);
+      state.progressPhotos.push({id:uid(),date:todayStr(),dataUrl});
+      state.progressPhotos.sort((a,b)=>a.date.localeCompare(b.date));
+      saveState();
+      renderPhotoGrid();
+      toast('✅ Foto guardada');
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+  document.getElementById('photoInput').value='';
+}
+function renderPhotoGrid(){
+  const el=document.getElementById('photoGrid');
+  if(!el)return;
+  const addTile=`<div class="photo-add-btn" onclick="document.getElementById('photoInput').click()">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:20px;height:20px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Foto
+  </div>`;
+  const photos=[...state.progressPhotos].reverse().map(p=>`
+    <div class="photo-thumb" onclick="openPhotoView('${p.id}')">
+      <img src="${p.dataUrl}">
+      <div class="photo-thumb-date">${fmtDate(p.date).slice(0,6)}</div>
+    </div>
+  `).join('');
+  el.innerHTML=addTile+photos;
+}
+function openPhotoView(id){
+  const p=state.progressPhotos.find(x=>x.id===id);
+  if(!p)return;
+  document.getElementById('photoViewDate').textContent=fmtDate(p.date);
+  document.getElementById('photoViewImg').src=p.dataUrl;
+  document.getElementById('photoViewDeleteBtn').onclick=()=>{
+    if(!confirm('¿Eliminar esta foto?'))return;
+    state.progressPhotos=state.progressPhotos.filter(x=>x.id!==id);
+    saveState();
+    renderPhotoGrid();
+    closeModal('photoViewModal');
+  };
+  document.getElementById('photoViewModal').classList.add('open');
 }
 </script>
 </body>
