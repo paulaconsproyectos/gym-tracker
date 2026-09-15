@@ -191,6 +191,9 @@ canvas{width:100%!important;max-width:100%}
 
 <!-- SCREEN: INICIO -->
 <div class="screen active" id="scHome">
+  <div class="sec-label">Tu día — <span id="homeTodayDay"></span></div>
+  <div class="card" style="margin-bottom:14px" id="homeTodayCard"></div>
+
   <div class="countdown-card">
     <div class="countdown-days" id="homeCountdownDays">—</div>
     <div class="countdown-lbl">días para el <span id="homeDeadline">2 dic</span></div>
@@ -243,6 +246,9 @@ canvas{width:100%!important;max-width:100%}
 
 <!-- SCREEN: ENTRENO -->
 <div class="screen" id="scTrain">
+  <div class="sec-label">Plan de hoy</div>
+  <div class="card" style="margin-bottom:12px" id="todayPlanCard"></div>
+
   <div class="sec-label">Sesión de hoy</div>
   <div class="card" style="margin-bottom:12px">
     <div class="input-row two">
@@ -263,7 +269,7 @@ canvas{width:100%!important;max-width:100%}
       </div>
       <div>
         <label>Fecha</label>
-        <input type="date" id="sessionDate">
+        <input type="date" id="sessionDate" onchange="renderTodayPlan()">
       </div>
     </div>
     <div class="input-row" style="margin-bottom:0">
@@ -271,6 +277,36 @@ canvas{width:100%!important;max-width:100%}
         <label>Notas (opcional)</label>
         <input type="text" id="sessionNotes" placeholder="Ej: poco descanso, cansada...">
       </div>
+    </div>
+  </div>
+
+  <div class="card" id="cardioCard" style="display:none;margin-bottom:12px">
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px">🏃 Datos de cardio</div>
+    <div class="input-row" style="margin-bottom:8px">
+      <div>
+        <label>Pegar datos de la cinta/máquina</label>
+        <textarea id="cardioPasteText" rows="4" placeholder="distancia: 3.20
+duracion: 41:05
+calorias: 388.95
+velocidad: 4.7
+ritmo: 12:46
+fc: 125
+ascenso: 808.55
+descenso: 0.00" style="font-size:12px;resize:vertical"></textarea>
+      </div>
+    </div>
+    <button class="btn btn-ghost" style="width:100%;margin-bottom:12px" onclick="parseCardioPaste()">Rellenar campos desde el texto</button>
+    <div class="input-row four" style="margin-bottom:8px">
+      <div><label>Distancia (km)</label><input type="text" id="cardioDistance" placeholder="3.20"></div>
+      <div><label>Duración</label><input type="text" id="cardioDuration" placeholder="41:05"></div>
+      <div><label>Kcal</label><input type="text" id="cardioKcal" placeholder="388.95"></div>
+      <div><label>FC media</label><input type="text" id="cardioHr" placeholder="125"></div>
+    </div>
+    <div class="input-row four">
+      <div><label>Vel. media</label><input type="text" id="cardioSpeed" placeholder="4.7"></div>
+      <div><label>Ritmo medio</label><input type="text" id="cardioPace" placeholder="12:46"></div>
+      <div><label>Desnivel +</label><input type="text" id="cardioElevUp" placeholder="808.55"></div>
+      <div><label>Desnivel -</label><input type="text" id="cardioElevDown" placeholder="0.00"></div>
     </div>
   </div>
 
@@ -570,8 +606,31 @@ Flexiones..." style="resize:vertical;font-size:13px;line-height:1.5"></textarea>
           <input type="text" id="newHabitUnit" placeholder="pasos">
         </div>
       </div>
+      <div class="input-row" style="margin-bottom:8px">
+        <div><label>Recordatorio (opcional)</label><input type="time" id="newHabitReminder"></div>
+      </div>
       <button class="btn btn-acc" onclick="addCustomHabit()">Guardar hábito</button>
     </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR PLAN SEMANAL -->
+<div class="modal-overlay" id="planEditModal" onclick="closeModalOutside(event,'planEditModal')">
+  <div class="modal">
+    <div class="modal-title">
+      Plan semanal
+      <button class="modal-close" onclick="closeModal('planEditModal')">×</button>
+    </div>
+    <div class="chips" id="planDayChips">
+      <div class="chip" onclick="selectPlanDay(0)">Lun</div>
+      <div class="chip" onclick="selectPlanDay(1)">Mar</div>
+      <div class="chip" onclick="selectPlanDay(2)">Mié</div>
+      <div class="chip" onclick="selectPlanDay(3)">Jue</div>
+      <div class="chip" onclick="selectPlanDay(4)">Vie</div>
+      <div class="chip" onclick="selectPlanDay(5)">Sáb</div>
+      <div class="chip" onclick="selectPlanDay(6)">Dom</div>
+    </div>
+    <div id="planEditContent"></div>
   </div>
 </div>
 
@@ -884,7 +943,7 @@ const BUILT_IN = [
 ];
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let state = {sessions:[], bodyLog:[], customEx:[], habits:[], habitLogs:{}, reminders:[], remindersOn:false, goal:null, progressPhotos:[]};
+let state = {sessions:[], bodyLog:[], customEx:[], habits:[], habitLogs:{}, reminders:[], remindersOn:false, goal:null, progressPhotos:[], weekPlan:null};
 let filterMuscle = '';
 let currentSession = {exercises:[]};
 let weightChartInst = null;
@@ -963,6 +1022,55 @@ function seedHabits(){
   saveState();
 }
 
+function seedWeekPlan(){
+  if(state.weekPlan) return;
+  // índice 0=Lunes ... 6=Domingo
+  state.weekPlan=[
+    {label:'Piernas',cardioMin:null,exercises:[
+      {name:'Sentadilla con barra (back squat)',muscle:'Piernas',sets:4,reps:8},
+      {name:'Prensa de piernas 45°',muscle:'Piernas',sets:4,reps:10},
+      {name:'Zancada caminando con mancuernas',muscle:'Piernas',sets:3,reps:12},
+      {name:'Extensión de cuádriceps en máquina',muscle:'Piernas',sets:3,reps:12},
+      {name:'Curl femoral tumbado en máquina',muscle:'Piernas',sets:3,reps:12},
+      {name:'Gemelos en máquina sentado',muscle:'Piernas',sets:3,reps:15},
+    ]},
+    {label:'Espalda + Bíceps',cardioMin:20,exercises:[
+      {name:'Jalón al pecho agarre ancho',muscle:'Espalda',sets:4,reps:10},
+      {name:'Remo con mancuerna un brazo',muscle:'Espalda',sets:3,reps:10},
+      {name:'Remo en polea baja agarre estrecho',muscle:'Espalda',sets:3,reps:12},
+      {name:'Pullover con mancuerna',muscle:'Espalda',sets:3,reps:12},
+      {name:'Curl con mancuernas alterno de pie',muscle:'Bíceps',sets:3,reps:12},
+      {name:'Curl martillo con mancuernas',muscle:'Bíceps',sets:3,reps:12},
+    ]},
+    {label:'Glúteo',cardioMin:null,exercises:[
+      {name:'Hip thrust con barra',muscle:'Glúteo',sets:4,reps:10},
+      {name:'Sentadilla búlgara (split squat)',muscle:'Glúteo',sets:3,reps:10},
+      {name:'Patada de glúteo en polea baja',muscle:'Glúteo',sets:3,reps:15},
+      {name:'Abducción en polea baja',muscle:'Glúteo',sets:3,reps:15},
+      {name:'Peso muerto rumano',muscle:'Espalda',sets:3,reps:10},
+      {name:'Puente de glúteos en suelo',muscle:'Glúteo',sets:3,reps:20},
+    ]},
+    {label:'Hombros',cardioMin:20,exercises:[
+      {name:'Press con mancuernas sentado',muscle:'Hombros',sets:4,reps:10},
+      {name:'Elevaciones laterales con mancuernas',muscle:'Hombros',sets:3,reps:15},
+      {name:'Elevaciones frontales con mancuernas',muscle:'Hombros',sets:3,reps:12},
+      {name:'Face pull en polea (deltoides posterior)',muscle:'Hombros',sets:3,reps:15},
+      {name:'Plancha frontal',muscle:'Core',sets:3,reps:45},
+      {name:'Russian twist con peso',muscle:'Core',sets:3,reps:20},
+    ]},
+    {label:'Full Body',cardioMin:30,exercises:[
+      {name:'Sentadilla goblet con kettlebell',muscle:'Piernas',sets:3,reps:12},
+      {name:'Press banca inclinado con mancuernas',muscle:'Pecho',sets:3,reps:10},
+      {name:'Aperturas en polea cruzada (crossover)',muscle:'Pecho',sets:3,reps:12},
+      {name:'Elevación de piernas colgada en barra',muscle:'Core',sets:3,reps:12},
+      {name:'Extensión en polea alta con cuerda',muscle:'Tríceps',sets:3,reps:12},
+    ]},
+    {label:'HIIT / Cardio',cardioMin:30,exercises:[],note:'Cardio o clase del gym con tu entrenador'},
+    {label:null,cardioMin:null,exercises:[],rest:true},
+  ];
+  saveState();
+}
+
 function seedGoal(){
   if(state.goal) return;
   const today=todayStr();
@@ -987,6 +1095,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   seedBaseData();
   seedHabits();
   seedGoal();
+  seedWeekPlan();
   const today=todayStr();
   document.getElementById('sessionDate').value=today;
   document.getElementById('bodyDate').value=today;
@@ -997,6 +1106,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderBodyHistory();
   populateProgSelector();
   renderHabits();
+  renderTodayPlan();
+  autoLoadTodayPlan();
   renderHome();
   renderPhotoGrid();
   initReminders();
@@ -1048,11 +1159,11 @@ const SESSION_SUGGESTIONS={
   'Hombros':['Press militar con barra de pie','Elevaciones laterales con mancuernas','Elevaciones frontales con mancuernas','Face pull en polea (deltoides posterior)','Pájaros con mancuernas (posterior)'],
   'Full Body':['Sentadilla con barra (back squat)','Press banca plano con barra','Peso muerto convencional','Jalón al pecho agarre ancho','Press militar con barra de pie'],
   'Core':['Plancha frontal','Crunch en polea alta','Elevación de piernas colgada en barra','Russian twist con peso','Rueda abdominal (ab wheel)'],
-  'HIIT / Cardio':['Cinta inclinada 15% (caminata)','Cinta de correr — HIIT intervalos','Bicicleta estática — HIIT','Saltar a la comba'],
 };
 
 function updateSessionType(){
   const type=document.getElementById('sessionType').value;
+  document.getElementById('cardioCard').style.display=type==='HIIT / Cardio'?'block':'none';
   if(!SESSION_SUGGESTIONS[type]) return;
   if(currentSession.exercises.length>0){
     if(!confirm(`¿Reemplazar los ejercicios actuales por los de "${type}"?`)) return;
@@ -1155,17 +1266,212 @@ function addSet(ei){
 function removeExercise(ei){currentSession.exercises.splice(ei,1);renderExerciseList();}
 
 function saveSession(){
-  if(currentSession.exercises.length===0){toast('⚠️ Añade al menos un ejercicio');return;}
+  const cardio=getCardioData();
+  if(currentSession.exercises.length===0&&!cardio){toast('⚠️ Añade al menos un ejercicio o datos de cardio');return;}
   const date=document.getElementById('sessionDate').value;
   const type=document.getElementById('sessionType').value||'Sin clasificar';
   const notes=document.getElementById('sessionNotes').value;
-  state.sessions.push({id:uid(),date,type,notes,exercises:currentSession.exercises.map(ex=>({name:ex.name,muscle:ex.muscle,sets:ex.sets.map(s=>({...s}))}))});
+  const session={id:uid(),date,type,notes,exercises:currentSession.exercises.map(ex=>({name:ex.name,muscle:ex.muscle,sets:ex.sets.map(s=>({...s}))}))};
+  if(cardio)session.cardio=cardio;
+  state.sessions.push(session);
   saveState();populateProgSelector();
   toast('✅ Sesión guardada');
   currentSession={exercises:[]};
   document.getElementById('sessionType').value='';
   document.getElementById('sessionNotes').value='';
+  clearCardioFields();
   renderExerciseList();
+  renderTodayPlan();
+}
+
+// ── PLAN SEMANAL ─────────────────────────────────────────────────────────────
+const DAY_NAMES=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+function dowIndex(dateStr){const d=new Date(dateStr+'T00:00:00');return(d.getDay()+6)%7;}
+function planForDate(dateStr){return state.weekPlan?state.weekPlan[dowIndex(dateStr)]:null;}
+
+function loadDayPlan(dow){
+  const plan=state.weekPlan[dow];
+  if(!plan||plan.rest){toast('Hoy toca descanso 🌙');return;}
+  if(currentSession.exercises.length>0){
+    if(!confirm('¿Reemplazar los ejercicios actuales por los del plan de hoy?'))return;
+    currentSession.exercises=[];
+  }
+  plan.exercises.forEach(pe=>{
+    const ex=allExercises().find(e=>e.name===pe.name)||{name:pe.name,muscle:pe.muscle};
+    const prog=getProgressionSuggestion(ex.name);
+    const last=getLastPerformance(ex.name);
+    let kg=0;
+    if(prog&&prog.suggest)kg=prog.newKg;
+    else if(prog&&prog.lastKg)kg=prog.lastKg;
+    else if(last&&last.sets&&last.sets.length)kg=parseFloat(last.sets[last.sets.length-1].kg)||0;
+    const sets=[];
+    for(let i=0;i<pe.sets;i++)sets.push({reps:pe.reps,kg,done:false});
+    currentSession.exercises.push({id:uid(),name:ex.name,muscle:ex.muscle,sets,prog});
+  });
+  if(plan.label){
+    const sel=document.getElementById('sessionType');
+    if([...sel.options].some(o=>o.value===plan.label))sel.value=plan.label;
+  }
+  renderExerciseList();
+  toast(`✅ Plan de ${DAY_NAMES[dow]} cargado`);
+}
+
+function prepareCardioType(label){
+  const sel=document.getElementById('sessionType');
+  if(label&&[...sel.options].some(o=>o.value===label))sel.value=label;
+  updateSessionType();
+  document.getElementById('cardioCard').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function autoLoadTodayPlan(){
+  const today=todayStr();
+  if(document.getElementById('sessionDate').value!==today)return;
+  if(currentSession.exercises.length>0)return;
+  const dow=dowIndex(today);
+  const plan=state.weekPlan[dow];
+  if(!plan||plan.rest||plan.exercises.length===0)return;
+  loadDayPlan(dow);
+}
+
+function renderTodayPlan(){
+  const container=document.getElementById('todayPlanCard');
+  if(!container)return;
+  const date=document.getElementById('sessionDate').value||todayStr();
+  const dow=dowIndex(date);
+  const plan=state.weekPlan[dow];
+  const dayName=DAY_NAMES[dow];
+  let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div style="font-size:13px;font-weight:600">${dayName}</div>
+    <div class="habit-del" style="font-size:11px;color:var(--t3);cursor:pointer" onclick="openPlanEditModal(${dow})">Editar plan semanal</div>
+  </div>`;
+  if(!plan||plan.rest){
+    html+=`<div style="text-align:center;padding:10px 0;color:var(--t3);font-size:13px">🌙 Día de descanso</div>`;
+  } else {
+    if(plan.exercises.length>0){
+      html+=plan.exercises.map(pe=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--b1);font-size:12px">
+        <div>${pe.name}</div><div style="color:var(--t3);font-family:var(--mono)">${pe.sets}×${pe.reps}</div>
+      </div>`).join('');
+    }
+    if(plan.cardioMin){
+      html+=`<div style="padding:6px 0 0;font-size:12px;color:var(--t2)">🏃 Cardio objetivo: ${plan.cardioMin} min${plan.note?' · '+plan.note:''}</div>`;
+    }
+    if(plan.exercises.length>0){
+      html+=`<button class="btn btn-acc" style="width:100%;margin-top:12px" onclick="loadDayPlan(${dow})">Cargar plan en la sesión</button>`;
+    } else if(plan.cardioMin){
+      html+=`<button class="btn btn-acc" style="width:100%;margin-top:12px" onclick="prepareCardioType('${plan.label}')">Preparar cardio de hoy</button>`;
+    }
+  }
+  container.innerHTML=html;
+}
+
+function openPlanEditModal(dow){
+  document.querySelectorAll('#planDayChips .chip').forEach((c,i)=>c.classList.toggle('sel',i===dow));
+  renderPlanEditDay(dow);
+  document.getElementById('planEditModal').dataset.dow=dow;
+  document.getElementById('planEditModal').classList.add('open');
+}
+function selectPlanDay(dow){
+  document.querySelectorAll('#planDayChips .chip').forEach((c,i)=>c.classList.toggle('sel',i===dow));
+  document.getElementById('planEditModal').dataset.dow=dow;
+  renderPlanEditDay(dow);
+}
+function renderPlanEditDay(dow){
+  const plan=state.weekPlan[dow];
+  const el=document.getElementById('planEditContent');
+  const isRest=!!plan.rest;
+  el.innerHTML=`
+    <div class="toggle-row" style="margin-bottom:12px">
+      <div style="font-size:13px;font-weight:500">Día de descanso</div>
+      <label class="switch"><input type="checkbox" ${isRest?'checked':''} onchange="togglePlanRest(${dow},this.checked)"><span class="switch-slider"></span></label>
+    </div>
+    ${isRest?'':`
+    <div class="input-row two" style="margin-bottom:10px">
+      <div><label>Etiqueta del día</label><input type="text" value="${plan.label||''}" onchange="setPlanLabel(${dow},this.value)"></div>
+      <div><label>Cardio objetivo (min)</label><input type="number" value="${plan.cardioMin||''}" onchange="setPlanCardio(${dow},this.value)"></div>
+    </div>
+    <div id="planExList">${plan.exercises.map((pe,i)=>`
+      <div class="habit-row">
+        <div class="habit-info">
+          <div class="habit-name">${pe.name}</div>
+          <div class="habit-streak">
+            series <input type="number" value="${pe.sets}" style="width:44px;display:inline-block;padding:2px 4px" onchange="setPlanExField(${dow},${i},'sets',this.value)">
+            × reps <input type="number" value="${pe.reps}" style="width:44px;display:inline-block;padding:2px 4px" onchange="setPlanExField(${dow},${i},'reps',this.value)">
+          </div>
+        </div>
+        <div class="habit-del" onclick="removePlanEx(${dow},${i})">×</div>
+      </div>
+    `).join('')}</div>
+    <div class="input-row" style="margin-top:10px">
+      <div>
+        <label>Añadir ejercicio</label>
+        <select id="planAddExSelect">
+          <option value="">— Selecciona —</option>
+          ${allExercises().map(e=>`<option value="${e.name}">${e.name} (${e.muscle})</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-ghost" style="width:100%" onclick="addPlanEx(${dow})">+ Añadir al día</button>
+    `}
+  `;
+}
+function togglePlanRest(dow,checked){
+  state.weekPlan[dow].rest=checked;
+  saveState();renderPlanEditDay(dow);renderTodayPlan();
+}
+function setPlanLabel(dow,val){state.weekPlan[dow].label=val.trim()||null;saveState();renderTodayPlan();}
+function setPlanCardio(dow,val){state.weekPlan[dow].cardioMin=parseInt(val)||null;saveState();renderTodayPlan();}
+function setPlanExField(dow,i,field,val){state.weekPlan[dow].exercises[i][field]=parseInt(val)||1;saveState();renderTodayPlan();}
+function removePlanEx(dow,i){state.weekPlan[dow].exercises.splice(i,1);saveState();renderPlanEditDay(dow);renderTodayPlan();}
+function addPlanEx(dow){
+  const sel=document.getElementById('planAddExSelect');
+  const name=sel.value;
+  if(!name){toast('⚠️ Elige un ejercicio');return;}
+  const ex=allExercises().find(e=>e.name===name);
+  state.weekPlan[dow].exercises.push({name:ex.name,muscle:ex.muscle,sets:3,reps:10});
+  saveState();
+  renderPlanEditDay(dow);
+  renderTodayPlan();
+}
+
+// ── CARDIO ───────────────────────────────────────────────────────────────────
+function clearCardioFields(){
+  ['cardioDistance','cardioDuration','cardioKcal','cardioSpeed','cardioPace','cardioHr','cardioElevUp','cardioElevDown','cardioPasteText'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+}
+function parseCardioPaste(){
+  const text=document.getElementById('cardioPasteText').value;
+  if(!text.trim()){toast('⚠️ Pega los datos primero');return;}
+  const map={
+    distancia:'cardioDistance',duracion:'cardioDuration',duración:'cardioDuration',
+    calorias:'cardioKcal',calorías:'cardioKcal',
+    velocidad:'cardioSpeed','velocidad_media':'cardioSpeed',
+    ritmo:'cardioPace','ritmo_medio':'cardioPace',
+    fc:'cardioHr',frecuencia:'cardioHr','fc_media':'cardioHr',
+    ascenso:'cardioElevUp',descenso:'cardioElevDown',
+  };
+  let found=0;
+  text.split('\n').forEach(line=>{
+    const m=line.match(/^\s*([a-zA-Záéíóúñ_]+)\s*[:\-]\s*(.+)$/);
+    if(!m)return;
+    const key=m[1].toLowerCase().trim();
+    const val=m[2].trim();
+    const fieldId=map[key];
+    if(fieldId){document.getElementById(fieldId).value=val;found++;}
+  });
+  toast(found>0?`✅ ${found} campos rellenados`:'⚠️ No reconocí ningún campo');
+}
+function getCardioData(){
+  const distance=document.getElementById('cardioDistance').value;
+  const duration=document.getElementById('cardioDuration').value;
+  const kcal=document.getElementById('cardioKcal').value;
+  const speed=document.getElementById('cardioSpeed').value;
+  const pace=document.getElementById('cardioPace').value;
+  const hr=document.getElementById('cardioHr').value;
+  const elevUp=document.getElementById('cardioElevUp').value;
+  const elevDown=document.getElementById('cardioElevDown').value;
+  if(!distance&&!duration&&!kcal)return null;
+  return{distance,duration,kcal,speed,pace,hr,elevUp,elevDown};
 }
 
 // ── MODAL ────────────────────────────────────────────────────────────────────
@@ -1229,11 +1535,13 @@ function renderSessionHistory(){
   container.innerHTML=sorted.slice(0,15).map(s=>{
     const vol=s.exercises.reduce((acc,ex)=>acc+ex.sets.filter(st=>st.done).reduce((a,st)=>a+(parseFloat(st.reps)||0)*(parseFloat(st.kg)||0),0),0);
     const exNames=s.exercises.map(e=>e.name).slice(0,3).join(', ')+(s.exercises.length>3?' +'+( s.exercises.length-3):'');
+    const cardioLine=s.cardio?`${s.cardio.distance?s.cardio.distance+'km · ':''}${s.cardio.duration?s.cardio.duration+' · ':''}${s.cardio.kcal?s.cardio.kcal+'kcal':''}${s.cardio.hr?' · FC '+s.cardio.hr:''}`:'';
     return`<div class="hist-item">
       <div>
         <div class="hist-date">${fmtDate(s.date)}</div>
         <div class="hist-name">${s.type}</div>
-        <div class="hist-sets">${exNames}</div>
+        ${exNames?`<div class="hist-sets">${exNames}</div>`:''}
+        ${cardioLine?`<div class="hist-sets">🏃 ${cardioLine}</div>`:''}
         ${s.notes?`<div style="font-size:11px;color:var(--t3);margin-top:2px;font-style:italic">${s.notes}</div>`:''}
       </div>
       <div>${vol>0?`<div class="hist-vol">${vol.toFixed(0)}</div><div class="hist-vol-lbl">vol total</div>`:''}</div>
@@ -1570,11 +1878,14 @@ function addCustomHabit(){
     habit.goal=parseFloat(document.getElementById('newHabitGoal').value)||1;
     habit.unit=document.getElementById('newHabitUnit').value.trim()||'';
   }
+  const reminderTime=document.getElementById('newHabitReminder').value;
+  if(reminderTime)habit.reminderTime=reminderTime;
   state.habits.push(habit);
   saveState();
   document.getElementById('newHabitName').value='';
   document.getElementById('newHabitGoal').value='';
   document.getElementById('newHabitUnit').value='';
+  document.getElementById('newHabitReminder').value='';
   renderHabitManageList();
   renderHabits();
   toast('✅ Hábito añadido');
@@ -1591,10 +1902,19 @@ function renderHabitManageList(){
       <div class="habit-info">
         <div class="habit-name">${h.name}</div>
         <div class="habit-streak">${h.category} · ${h.type==='number'?`objetivo ${h.goal}${h.unit}`:'check diario'}</div>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+          <span style="font-size:10px;color:var(--t3)">🔔 aviso</span>
+          <input type="time" value="${h.reminderTime||''}" style="width:100px;padding:4px 6px;font-size:11px" onchange="setHabitReminder('${h.id}',this.value)">
+        </div>
       </div>
       <div class="habit-del" onclick="deleteHabit('${h.id}')">×</div>
     </div>
   `).join('');
+}
+function setHabitReminder(id,time){
+  const h=state.habits.find(x=>x.id===id);if(!h)return;
+  if(time)h.reminderTime=time;else delete h.reminderTime;
+  saveState();
 }
 function renderHabits(){
   const date=getHabitDate();
@@ -1724,15 +2044,22 @@ function checkReminders(){
   const now=new Date();
   const hhmm=now.toTimeString().slice(0,5);
   const today=todayStr();
+  const log=dayLog(today);
   state.reminders.forEach(r=>{
     if(r.time===hhmm && r.lastFired!==today){
       r.lastFired=today;
       saveState();
-      const log=dayLog(today);
       const pending=state.habits.filter(h=>!isHabitMet(h,log[h.id])).length;
       if(pending>0){
         try{new Notification('TrackFit',{body:`Te quedan ${pending} hábito${pending===1?'':'s'} por cumplir hoy`,icon:'icon-192.png'});}catch(e){}
       }
+    }
+  });
+  state.habits.forEach(h=>{
+    if(h.reminderTime===hhmm && h.reminderLastFired!==today && !isHabitMet(h,log[h.id])){
+      h.reminderLastFired=today;
+      saveState();
+      try{new Notification('TrackFit',{body:`Recuerda: ${h.name}`,icon:'icon-192.png'});}catch(e){}
     }
   });
 }
@@ -1838,7 +2165,42 @@ function weekStats(weekStart,weekEnd){
   return{sessions,sessionsTarget,habitsPct,weightVerdict,verdict};
 }
 
+function renderTodayCard(){
+  const today=todayStr();
+  const dow=dowIndex(today);
+  document.getElementById('homeTodayDay').textContent=DAY_NAMES[dow];
+  const plan=state.weekPlan?state.weekPlan[dow]:null;
+  const log=dayLog(today);
+  const pendingHabits=state.habits.filter(h=>!isHabitMet(h,log[h.id]));
+  let html='';
+  if(!plan||plan.rest){
+    html+=`<div style="display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--b1);margin-bottom:10px">
+      <div style="font-size:20px">🌙</div>
+      <div><div style="font-size:13px;font-weight:500">Día de descanso</div><div style="font-size:11px;color:var(--t3)">Aprovecha para recuperar</div></div>
+    </div>`;
+  } else {
+    const alreadyDone=state.sessions.some(s=>s.date===today);
+    html+=`<div style="padding-bottom:10px;border-bottom:1px solid var(--b1);margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-size:13px;font-weight:600">🏋️ ${plan.label||'Entreno'}${alreadyDone?' ✅':''}</div>
+        <div class="track-badge green" style="cursor:pointer" onclick="switchTab('Train')">Ver</div>
+      </div>
+      ${plan.exercises.length>0?`<div style="font-size:11px;color:var(--t3)">${plan.exercises.map(e=>e.name).slice(0,3).join(', ')}${plan.exercises.length>3?' +'+(plan.exercises.length-3):''}</div>`:''}
+      ${plan.cardioMin?`<div style="font-size:11px;color:var(--t2);margin-top:4px">🏃 ${plan.cardioMin} min de cardio${plan.note?' · '+plan.note:''}</div>`:''}
+    </div>`;
+  }
+  html+=`<div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div style="font-size:13px;font-weight:600">✅ Hábitos de hoy</div>
+      <div class="track-badge ${pendingHabits.length===0?'green':'yellow'}" style="cursor:pointer" onclick="switchTab('Habits')">${state.habits.length-pendingHabits.length}/${state.habits.length}</div>
+    </div>
+    ${pendingHabits.length>0?`<div style="font-size:11px;color:var(--t3)">Pendiente: ${pendingHabits.slice(0,4).map(h=>h.name).join(', ')}${pendingHabits.length>4?'…':''}</div>`:`<div style="font-size:11px;color:var(--t3)">Todo hecho 🎉</div>`}
+  </div>`;
+  document.getElementById('homeTodayCard').innerHTML=html;
+}
+
 function renderHome(){
+  renderTodayCard();
   const g=state.goal;
   const today=todayStr();
   const homeTrackCard=document.getElementById('homeTrackCard');
