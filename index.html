@@ -180,6 +180,21 @@ canvas{width:100%!important;max-width:100%}
 </style>
 </head>
 <body>
+<div id="errBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99999;background:#c0392b;color:#fff;padding:12px 14px;font-size:11px;font-family:monospace;white-space:pre-wrap;max-height:45vh;overflow:auto;line-height:1.5"></div>
+<script>
+function showErrBanner(msg){
+  var el=document.getElementById('errBanner');
+  if(!el)return;
+  el.style.display='block';
+  el.textContent=(el.textContent?el.textContent+'\n\n':'')+msg;
+}
+window.addEventListener('error',function(e){
+  showErrBanner('ERROR: '+e.message+'\n@ '+(e.filename||'')+':'+(e.lineno||'')+':'+(e.colno||''));
+});
+window.addEventListener('unhandledrejection',function(e){
+  showErrBanner('PROMISE ERROR: '+(e.reason&&e.reason.message?e.reason.message:e.reason));
+});
+</script>
 
 <div class="hdr">
   <div>
@@ -1112,32 +1127,40 @@ function seedNutrition(){
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
+function step(label,fn){
+  try{ fn(); }
+  catch(e){ showErrBanner('FALLO EN: '+label+'\n'+(e&&e.stack?e.stack:e)); }
+}
 document.addEventListener('DOMContentLoaded',()=>{
-  loadState();
-  seedBaseData();
-  seedHabits();
-  seedGoal();
-  seedWeekPlan();
-  seedNutrition();
-  const today=todayStr();
-  document.getElementById('sessionDate').value=today;
-  document.getElementById('bodyDate').value=today;
-  document.getElementById('habitDate').value=today;
-  document.getElementById('hdrDate').textContent=fmtDate(today);
-  renderExerciseList();
-  renderBodyStats();
-  renderBodyHistory();
-  populateProgSelector();
-  renderHabits();
-  renderTodayPlan();
-  autoLoadTodayPlan();
-  renderHome();
-  renderPhotoGrid();
-  initReminders();
-  renderCharts();
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
-  }
+  step('loadState',loadState);
+  step('seedBaseData',seedBaseData);
+  step('seedHabits',seedHabits);
+  step('seedGoal',seedGoal);
+  step('seedWeekPlan',seedWeekPlan);
+  step('seedNutrition',seedNutrition);
+  step('fechas iniciales',()=>{
+    const today=todayStr();
+    document.getElementById('sessionDate').value=today;
+    document.getElementById('bodyDate').value=today;
+    document.getElementById('habitDate').value=today;
+    document.getElementById('hdrDate').textContent=fmtDate(today);
+  });
+  step('renderExerciseList',renderExerciseList);
+  step('renderBodyStats',renderBodyStats);
+  step('renderBodyHistory',renderBodyHistory);
+  step('populateProgSelector',populateProgSelector);
+  step('renderHabits',renderHabits);
+  step('renderTodayPlan',renderTodayPlan);
+  step('autoLoadTodayPlan',autoLoadTodayPlan);
+  step('renderHome',renderHome);
+  step('renderPhotoGrid',renderPhotoGrid);
+  step('initReminders',initReminders);
+  step('renderCharts',renderCharts);
+  step('serviceWorker',()=>{
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    }
+  });
 });
 
 // ── UTILS ────────────────────────────────────────────────────────────────────
